@@ -1,0 +1,60 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noImplicitAny": false,
+    "strict": false,
+    "allowUnusedLabels": true,
+    "allowUnreachableCode": true,
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/integrations/*": [
+        "integrations/*",
+      ],
+      "@/integrations": [
+        "integrations"
+      ],
+      "@/lib": [
+        "src/lib"
+      ],
+      "@/hooks": [
+        "src/hooks"
+      ],
+    }
+  },
+  "include": [
+    "src",
+    "integrations"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/tailwind.config.mjs",
+    "vite-error-overlay-plugin.js"
+  ]
+}
