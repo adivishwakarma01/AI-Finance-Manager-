@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, ExternalLink, Filter, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,7 @@ export default function InvestmentsPage() {
 
   useEffect(() => {
     filterInvestmentData();
-  }, [filterInvestmentData]);
+  }, [investments, searchTerm, filterRisk, filterType]);
 
   const loadInvestments = async () => {
     setLoading(true);
@@ -35,7 +35,7 @@ export default function InvestmentsPage() {
     setLoading(false);
   };
 
-  const filterInvestmentData = useCallback(() => {
+  const filterInvestmentData = () => {
     let filtered = [...investments];
 
     if (searchTerm) {
@@ -54,7 +54,7 @@ export default function InvestmentsPage() {
     }
 
     setFilteredInvestments(filtered);
-  }, [investments, searchTerm, filterRisk, filterType]);
+  };
 
   const riskLevels = Array.from(new Set(investments.map(inv => inv.riskLevel).filter(Boolean)));
   const investmentTypes = Array.from(new Set(investments.map(inv => inv.investmentType).filter(Boolean)));

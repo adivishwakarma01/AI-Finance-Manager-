@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import '@/components/ui/image.css'
 
 type Size = {
@@ -10,7 +10,7 @@ export const useSize = (ref: React.RefObject<HTMLElement>, threshold: number = 5
 
   const [size, setSize] = useState<Size | null>(null)
 
-  const updateSize = useCallback((newSize: Size): void => {
+  const updateSize = (newSize: Size): void => {
     if (!size) {
       setSize(newSize)
       return
@@ -22,33 +22,33 @@ export const useSize = (ref: React.RefObject<HTMLElement>, threshold: number = 5
     if (widthDiff > threshold || heightDiff > threshold) {
       setSize(newSize)
     }
-  }, [size, threshold])
+  }
 
   useLayoutEffect(() => {
-      const el = ref.current
-      if (el) {
-          const { width, height } = el.getBoundingClientRect()
+      if (ref.current) {
+          const { width, height } = ref.current.getBoundingClientRect()
           updateSize({ width, height })
       }
-  }, [ref, updateSize])
+  }, [ref.current, size])
 
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
+    if (!ref.current) return
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect
-        updateSize({ width, height })
+        if (!size || size.width !== width || size.height !== height) {
+          updateSize({ width, height })
+        }
       }
     })
 
-    resizeObserver.observe(el)
+    resizeObserver.observe(ref.current)
 
     return () => {
       resizeObserver.disconnect()
     }
-  }, [ref, updateSize])
+  }, [ref.current, size])
 
   return size
 }

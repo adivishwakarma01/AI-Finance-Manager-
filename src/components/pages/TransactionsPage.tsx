@@ -35,10 +35,6 @@ export default function TransactionsPage() {
     loadTransactions();
   }, []);
 
-  useEffect(() => {
-    filterTransactions();
-  }, [filterTransactions]);
-
   const loadTransactions = async () => {
     setLoading(true);
     const { items } = await BaseCrudService.getAll<Transactions>('transactions');
@@ -67,6 +63,10 @@ export default function TransactionsPage() {
     filtered.sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
     setFilteredTransactions(filtered);
   }, [transactions, searchTerm, filterType, filterCategory]);
+
+  useEffect(() => {
+    filterTransactions();
+  }, [filterTransactions]);
 
   const categories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)));
 
