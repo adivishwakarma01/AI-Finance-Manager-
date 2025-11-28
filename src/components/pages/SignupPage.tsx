@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,20 +15,27 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
-  const { signup, isLoading, error } = useAuth();
+  const { signup, isLoading, error, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
 
     // Validation
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       setLocalError('Please fill in all fields');
       return;
     }
 
-    if (!email.includes('@')) {
+    if (!email.includes('@') || !email.includes('.')) {
       setLocalError('Please enter a valid email address');
       return;
     }
@@ -44,19 +51,37 @@ export default function SignupPage() {
     }
 
     try {
-      await signup(email, password, name);
+      await signup(email.trim(), password, name.trim());
       // Navigate to dashboard on success
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
-      // Error is handled by auth context, but check for duplicate email
-      if (error.response?.status === 409) {
-        setLocalError('An account with this email already exists');
-      }
+      // Error is handled by auth context, but also show specific messages
       console.error('Signup error:', error);
+      
+      // Show specific error messages
+      if (error.code === 'ERR_NETWORK') {
+        setLocalError('Cannot connect to server. Please check your connection and ensure the backend is running.');
+      } else if (error.response?.status === 409) {
+        setLocalError('An account with this email already exists. Please login instead.');
+      } else if (error.response?.status === 400) {
+        setLocalError(error.response?.data?.message || 'Invalid data provided. Please check your input.');
+      } else if (error.response?.status === 404) {
+        setLocalError('Server endpoint not found. Please check backend configuration.');
+      }
     }
   };
 
   const displayError = localError || error;
+  
+  // Clear errors after some time
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setLocalError(null);
+      }, 5000); // Clear error after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-[#1a2744] to-background px-4 py-12">

@@ -110,7 +110,7 @@ export default function AppRouter() {
   return (
     <MemberProvider>
       <AuthProvider>
-        <RouterProvider router={router} />
+      <RouterProvider router={router} />
       </AuthProvider>
     </MemberProvider>
   );

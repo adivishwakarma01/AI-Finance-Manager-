@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, TrendingUp, TrendingDown, Search, Filter, Calendar, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     filterTransactions();
-  }, [transactions, searchTerm, filterType, filterCategory]);
+  }, [filterTransactions]);
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -46,7 +46,7 @@ export default function TransactionsPage() {
     setLoading(false);
   };
 
-  const filterTransactions = () => {
+  const filterTransactions = useCallback(() => {
     let filtered = [...transactions];
 
     if (searchTerm) {
@@ -66,7 +66,7 @@ export default function TransactionsPage() {
 
     filtered.sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
     setFilteredTransactions(filtered);
-  };
+  }, [transactions, searchTerm, filterType, filterCategory]);
 
   const categories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)));
 

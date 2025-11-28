@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +27,7 @@ export default function FAQPage() {
     })();
   }, []);
 
-  const buildSummary = () => {
+  const buildSummary = useCallback(() => {
     const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
     const expenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
     const balance = income - expenses;
@@ -51,7 +51,7 @@ export default function FAQPage() {
       .map(t => ({ date: t.date, type: t.type, category: t.category, amount: t.amount, description: t.description }));
 
     return { totalIncome: income, totalExpenses: expenses, balance, savingsRate, topCategories: topFive, recentTransactions };
-  };
+  }, [transactions]);
 
   const askAdvisor = async () => {
     if (!question.trim()) return;
@@ -68,13 +68,12 @@ export default function FAQPage() {
         body: JSON.stringify({ question, context: { summary } })
       });
       if (!response.ok) {
-        // Graceful fallback text
         setAnswer('Here’s a practical approach: Automate a small savings transfer after payday, cap discretionary categories, and review subscriptions to reduce recurring costs.');
         return;
       }
       const data = await response.json();
       setAnswer(data?.answer || 'Sorry, I could not generate an answer at this time.');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Advisor Q&A error', err);
       setAnswer('Here’s a practical approach: Automate a small savings transfer after payday, cap discretionary categories, and review subscriptions to reduce recurring costs.');
     } finally {

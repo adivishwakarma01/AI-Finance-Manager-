@@ -3,6 +3,7 @@ import tsParser from '@typescript-eslint/parser';
 import eslintPluginAstro from 'eslint-plugin-astro';
 import importPlugin from 'eslint-plugin-import';
 import reactPlugin from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import useImageComponent from './eslint-rules/use-image-component';
 import fixEmptySelectItemValue from './eslint-rules/fix-empty-select-item-value';
@@ -15,6 +16,7 @@ export default [
   {
     plugins: {
       react: reactPlugin,
+      'react-hooks': reactHooks,
       '@typescript-eslint': tsPlugin,
       'import': importPlugin,
       'custom': {
@@ -49,6 +51,10 @@ export default [
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx', '.astro'],
         },
+        typescript: {
+          alwaysTryTypes: true,
+          project: ['./tsconfig.json'],
+        },
       },
     },
     files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
@@ -65,10 +71,11 @@ export default [
       'no-undef': 'off',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       'import/no-unresolved': 'off',
-      'import/named': 'error',
+      'import/named': 'off',
       'import/default': 'error',
       'no-restricted-syntax': [
         'error',

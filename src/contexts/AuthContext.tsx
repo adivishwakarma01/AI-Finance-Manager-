@@ -37,7 +37,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading: true,
     error: null,
   });
-  const USER_KEY = 'ai-finance-user';
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      const { data: profile } = await fetchProfile();
+      setState({
+        user: profile,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      // Token might be invalid, clear it
+      clearAuth();
+      
+      // Don't show error for invalid tokens on mount (normal flow)
+      const shouldShowError = error.response?.status !== 401 && error.response?.status !== 403;
+      
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: shouldShowError ? (error.response?.data?.message || 'Failed to load profile') : null,
+      });
+    }
+  }, []);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -48,46 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, []);
-
-  const refreshProfile = useCallback(async () => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      const { data: profile } = await fetchProfile();
-      const cachedRaw = localStorage.getItem(USER_KEY);
-      const cached = cachedRaw ? (JSON.parse(cachedRaw) as Profile) : undefined;
-      const merged: Profile = {
-        id: profile.id || cached?.id || '',
-        email: profile.email || cached?.email || '',
-        name: profile.name || cached?.name,
-        createdAt: profile.createdAt || cached?.createdAt,
-      };
-      localStorage.setItem(USER_KEY, JSON.stringify(merged));
-      setState({
-        user: merged,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error: any) {
-      const status = error?.response?.status;
-      if (status === 401) {
-        clearAuth();
-        setState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: error.response?.data?.message || 'Failed to load profile',
-        });
-      } else {
-        setState(prev => ({
-          user: prev.user,
-          isAuthenticated: !!prev.user,
-          isLoading: false,
-          error: error.message || 'Backend unavailable, please try again',
-        }));
-      }
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogin = useCallback(async (email: string, password: string) => {
@@ -97,43 +83,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store token
       setAuthToken(data.token);
-      const provisional: Profile = { id: data.user.id, email: data.user.email, name: data.user.name };
-      localStorage.setItem(USER_KEY, JSON.stringify(provisional));
-      setState(prev => ({
-        user: provisional,
+      
+      // Fetch and store user profile
+      const { data: profile } = await fetchProfile();
+      
+      setState({
+        user: profile,
         isAuthenticated: true,
-        isLoading: true,
+        isLoading: false,
         error: null,
-      }));
-
-      try {
-        const { data: profile } = await fetchProfile();
-        const merged: Profile = {
-          id: profile.id || provisional.id,
-          email: profile.email || provisional.email,
-          name: profile.name || provisional.name,
-          createdAt: profile.createdAt || provisional.createdAt,
-        };
-        localStorage.setItem(USER_KEY, JSON.stringify(merged));
-        setState({
-          user: merged,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      } catch (err: any) {
-        setState({
-          user: provisional,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      }
+      });
     } catch (error: any) {
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message ||
+        (error.code === 'ERR_NETWORK' ? 'Network error. Please check if the backend server is running.' : 'Login failed. Please check your credentials.');
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: error.response?.data?.message || 'Login failed. Please check your credentials.',
+        error: errorMessage,
       }));
       throw error;
     }
@@ -146,43 +115,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store token
       setAuthToken(data.token);
-      const provisional: Profile = { id: data.user.id, email: data.user.email, name: data.user.name };
-      localStorage.setItem(USER_KEY, JSON.stringify(provisional));
-      setState(prev => ({
-        user: provisional,
+      
+      // Fetch and store user profile
+      const { data: profile } = await fetchProfile();
+      
+      setState({
+        user: profile,
         isAuthenticated: true,
-        isLoading: true,
+        isLoading: false,
         error: null,
-      }));
-
-      try {
-        const { data: profile } = await fetchProfile();
-        const merged: Profile = {
-          id: profile.id || provisional.id,
-          email: profile.email || provisional.email,
-          name: profile.name || provisional.name,
-          createdAt: profile.createdAt || provisional.createdAt,
-        };
-        localStorage.setItem(USER_KEY, JSON.stringify(merged));
-        setState({
-          user: merged,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      } catch (err: any) {
-        setState({
-          user: provisional,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      }
+      });
     } catch (error: any) {
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message ||
+        (error.code === 'ERR_NETWORK' ? 'Network error. Please check if the backend server is running.' : 'Signup failed. Please try again.');
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: error.response?.data?.message || 'Signup failed. Please try again.',
+        error: errorMessage,
       }));
       throw error;
     }
@@ -195,7 +147,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Continue with logout even if API call fails
       console.error('Logout API call failed:', error);
     } finally {
-      localStorage.removeItem(USER_KEY);
       clearAuth();
       setState({
         user: null,

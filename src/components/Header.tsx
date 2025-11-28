@@ -74,8 +74,8 @@ export default function Header() {
             ) : (
               <Link to="/login">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Sign In
-                </Button>
+                Sign In
+              </Button>
               </Link>
             )}
           </div>
@@ -137,8 +137,8 @@ export default function Header() {
               ) : (
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    Sign In
-                  </Button>
+                  Sign In
+                </Button>
                 </Link>
               )}
             </div>

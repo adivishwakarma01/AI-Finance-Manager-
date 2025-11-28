@@ -22,7 +22,8 @@ export default {
     const { sourceCode, filename } = context;
 
     // Skip the whole components/ui folder
-    if (filename.includes('components/ui/')) return {};
+    const normalized = filename.replace(/\\/g, '/');
+    if (normalized.includes('components/ui/')) return {};
 
     let hasImageImport = false;
     let imageImportNode: ImportDeclaration | null = null;

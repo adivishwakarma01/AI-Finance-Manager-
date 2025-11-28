@@ -9,6 +9,7 @@ declare global {
 interface ImportMetaEnv {
   readonly BASE_NAME?: string;
   readonly VITE_API_URL?: string;
+  readonly VITE_ADVISOR_URL?: string;
 }
 
 interface ImportMeta {

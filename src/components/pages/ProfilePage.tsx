@@ -117,13 +117,13 @@ export default function ProfilePage() {
                     <p className="font-heading text-base font-semibold break-all">
                       {user?.email || 'Not provided'}
                     </p>
-                  </div>
+                </div>
 
                   <div className="p-4 bg-background/30 rounded-xl">
                     <p className="font-paragraph text-xs text-secondary-foreground/60 mb-1">User ID</p>
                     <p className="font-heading text-xs font-semibold break-all">
                       {user?.id || 'Not available'}
-                    </p>
+                        </p>
                   </div>
                 </div>
               </CardContent>
@@ -139,12 +139,12 @@ export default function ProfilePage() {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   {user?.createdAt && (
-                    <div className="p-4 bg-background/30 rounded-xl">
-                      <p className="font-paragraph text-xs text-secondary-foreground/60 mb-1">Member Since</p>
-                      <p className="font-heading text-base font-semibold">
+                  <div className="p-4 bg-background/30 rounded-xl">
+                    <p className="font-paragraph text-xs text-secondary-foreground/60 mb-1">Member Since</p>
+                    <p className="font-heading text-base font-semibold">
                         {formatDate(new Date(user.createdAt))}
-                      </p>
-                    </div>
+                    </p>
+                  </div>
                   )}
                 </div>
               </CardContent>

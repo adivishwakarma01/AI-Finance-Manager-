@@ -1,24 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Target, Brain, DollarSign, PieChart, AlertCircle, ArrowUpRight, ArrowDownRight, Plus, LineChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { BaseCrudService } from '@/integrations';
-import { Transactions, FinancialGoals } from '@/entities';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import Header from '@/components/Header';
-import { useMember } from '@/integrations';
+import { useAuth } from '@/contexts/AuthContext';
+import { listIncome, listExpense, listGoals, createExpense } from '@/api/client';
+import type { Income, Expense, Goal } from '@/api/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
-  const { member } = useMember();
-  const [transactions, setTransactions] = useState<Transactions[]>([]);
-  const [goals, setGoals] = useState<FinancialGoals[]>([]);
+  const { user } = useAuth();
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -38,60 +39,84 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  // After data load, auto-generate AI insights once
-  useEffect(() => {
-    if (!loading) {
-      // Trigger AI insights generation once when dashboard data is ready
-      generateAiInsights();
-    }
-  }, [loading]);
-
   const loadData = async () => {
-    setLoading(true);
-    const [transactionsData, goalsData] = await Promise.all([
-      BaseCrudService.getAll<Transactions>('transactions'),
-      BaseCrudService.getAll<FinancialGoals>('financialgoals')
-    ]);
-    setTransactions(transactionsData.items);
-    setGoals(goalsData.items);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const today = new Date();
+      const [incomesResponse, expensesResponse, goalsResponse] = await Promise.all([
+        listIncome({ month: today.getMonth() + 1, year: today.getFullYear() }),
+        listExpense({ month: today.getMonth() + 1, year: today.getFullYear() }),
+        listGoals()
+      ]);
+      
+      setIncomes(incomesResponse.data.incomes || []);
+      setExpenses(expensesResponse.data.expenses || []);
+      setGoals(goalsResponse.data.goals || []);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Combine all transactions for display
+  const allTransactions = useMemo(() => {
+    const incomeTransactions = incomes.map(i => ({
+      id: i.id,
+      type: 'income' as const,
+      amount: i.amount,
+      date: i.date,
+      category: i.category,
+      description: i.notes || i.source || 'Income',
+      _id: i.id
+    }));
+    const expenseTransactions = expenses.map(e => ({
+      id: e.id,
+      type: 'expense' as const,
+      amount: e.amount,
+      date: e.date,
+      category: e.category,
+      description: e.notes || 'Expense',
+      _id: e.id
+    }));
+    return [...incomeTransactions, ...expenseTransactions];
+  }, [incomes, expenses]);
+
   // Calculate metrics
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
+  const totalIncome = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const balance = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100) : 0;
 
-  const yesterdaySpend = transactions
-    .filter(t => t.type === 'expense')
-    .filter(t => {
-      const d = new Date(t.date || '');
+  const yesterdaySpend = expenses
+    .filter(e => {
+      const d = new Date(e.date || '');
       const now = new Date();
       const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
       return d.getFullYear() === y.getFullYear() && d.getMonth() === y.getMonth() && d.getDate() === y.getDate();
     })
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+    .reduce((sum, e) => sum + (e.amount || 0), 0);
 
   // Recent transactions
-  const recentTransactions = [...transactions]
-    .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
-    .slice(0, 5);
+  const recentTransactions = useMemo(() => (
+    [...allTransactions]
+      .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
+      .slice(0, 5)
+  ), [allTransactions]);
 
   // Expense by category
-  const expensesByCategory = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((acc, t) => {
-      const category = t.category || 'Other';
-      acc[category] = (acc[category] || 0) + (t.amount || 0);
+  const expensesByCategory = useMemo(() => (
+    expenses.reduce((acc, e) => {
+      const category = e.category || 'Other';
+      acc[category] = (acc[category] || 0) + (e.amount || 0);
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, number>)
+  ), [expenses]);
 
   const categoryData = Object.entries(expensesByCategory).map(([name, value]) => ({
     name,
@@ -99,14 +124,12 @@ export default function DashboardPage() {
   }));
 
   // Monthly spending trend
-  const monthlyData = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((acc, t) => {
-      const date = new Date(t.date || '');
-      const month = date.toLocaleString('default', { month: 'short' });
-      acc[month] = (acc[month] || 0) + (t.amount || 0);
-      return acc;
-    }, {} as Record<string, number>);
+  const monthlyData = expenses.reduce((acc, e) => {
+    const date = new Date(e.date || '');
+    const month = date.toLocaleString('default', { month: 'short' });
+    acc[month] = (acc[month] || 0) + (e.amount || 0);
+    return acc;
+  }, {} as Record<string, number>);
 
   const spendingTrend = Object.entries(monthlyData).map(([month, amount]) => ({
     month,
@@ -115,32 +138,10 @@ export default function DashboardPage() {
 
   const COLORS = ['#3567fd', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
 
-  // AI Insights (stateful)
-  const [aiInsights, setAiInsights] = useState([
-    {
-      type: 'warning',
-      message: `Your dining expenses are 25% higher than average. Consider meal planning to save $${Math.round(totalExpenses * 0.15)}/month.`,
-      icon: AlertCircle,
-      color: 'text-yellow-400'
-    },
-    {
-      type: 'success',
-      message: `Great job! You're on track to save $${Math.round(balance * 0.2)} more this month.`,
-      icon: TrendingUp,
-      color: 'text-primary'
-    },
-    {
-      type: 'tip',
-      message: 'Based on your income, you could invest $500/month in low-risk funds for long-term growth.',
-      icon: Brain,
-      color: 'text-iconcolor'
-    }
-  ]);
-  
-  const [aiGenerating, setAiGenerating] = useState(false);
-  const generateAiInsights = async () => {
+  // AI Insights
+  const [aiInsights, setAiInsights] = useState([] as Array<{ type: 'warning' | 'success' | 'tip'; message: string; icon: typeof AlertCircle | typeof TrendingUp | typeof Brain; color: string }>);
+  const generateAiInsights = useCallback(async () => {
     try {
-      setAiGenerating(true);
   
       const summary = {
         totalIncome,
@@ -154,9 +155,9 @@ export default function DashboardPage() {
         recentTransactions: recentTransactions.map(t => ({
           date: t.date,
           type: t.type,
-          category: t.category,
-          amount: t.amount,
-          description: t.description
+          category: t.category || 'Other',
+          amount: t.amount || 0,
+          description: t.description || ''
         }))
       };
   
@@ -170,14 +171,13 @@ export default function DashboardPage() {
       });
   
       if (!response.ok) {
-        // Graceful client-side fallback: simple, practical tips
-        const generic = [
+        const generic: Array<{ type: 'warning' | 'success' | 'tip'; message: string }> = [
           { type: 'tip', message: 'Try setting category budgets and automate savings right after payday.' },
           { type: 'tip', message: 'Review subscriptions quarterly to cut recurring costs.' },
           { type: 'tip', message: 'Track your top spending categories weekly to stay on target.' }
         ];
         setAiInsights(generic.map(item => ({
-          type: item.type as any,
+          type: item.type,
           message: item.message,
           icon: item.type === 'warning' ? AlertCircle : item.type === 'success' ? TrendingUp : Brain,
           color: item.type === 'warning' ? 'text-yellow-400' : item.type === 'success' ? 'text-primary' : 'text-iconcolor'
@@ -196,24 +196,32 @@ export default function DashboardPage() {
       }));
   
       setAiInsights(mapped);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to generate AI insights', e);
-      // Final safety fallback
-      const generic = [
+      const generic: Array<{ type: 'warning' | 'success' | 'tip'; message: string }> = [
         { type: 'tip', message: 'Consider a weekly spending review to keep expenses aligned with goals.' },
         { type: 'tip', message: 'Automate a small monthly transfer to savings to build momentum.' },
         { type: 'tip', message: 'Cap discretionary categories and seek cheaper alternatives for top spend areas.' }
       ];
       setAiInsights(generic.map(item => ({
-        type: item.type as any,
+        type: item.type,
         message: item.message,
         icon: item.type === 'warning' ? AlertCircle : item.type === 'success' ? TrendingUp : Brain,
         color: item.type === 'warning' ? 'text-yellow-400' : item.type === 'success' ? 'text-primary' : 'text-iconcolor'
       })));
     } finally {
-      setAiGenerating(false);
     }
-  };
+  }, [totalIncome, totalExpenses, balance, savingsRate, expensesByCategory, recentTransactions]);
+
+  // After data load, auto-generate AI insights once
+  const insightsGeneratedRef = useRef(false);
+  useEffect(() => {
+    if (!loading && !insightsGeneratedRef.current && (incomes.length > 0 || expenses.length > 0)) {
+      generateAiInsights();
+      insightsGeneratedRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, incomes.length, expenses.length, generateAiInsights]);
 
   useEffect(() => {
     if (!loading) {
@@ -221,7 +229,7 @@ export default function DashboardPage() {
         toast({ title: 'High spending detected', description: 'Savings rate is low. Consider capping discretionary categories.' });
       }
     }
-  }, [loading]);
+  }, [loading, totalIncome, savingsRate]);
 
   const quickSave = async () => {
     const amountNum = parseFloat(quickAmount);
@@ -229,21 +237,29 @@ export default function DashboardPage() {
       toast({ title: 'Invalid entry', description: 'Enter amount and category.' });
       return;
     }
-    const newTransaction: Transactions = {
-      _id: crypto.randomUUID(),
-      amount: amountNum,
-      type: 'expense',
-      date: new Date().toISOString(),
-      category: quickCategory.trim(),
-      description: quickDescription.trim()
-    };
-    await BaseCrudService.create('transactions', newTransaction);
-    await loadData();
-    setQuickOpen(false);
-    setQuickAmount('');
-    setQuickCategory('');
-    setQuickDescription('');
-    toast({ title: 'Expense added', description: 'Saved to your transactions.' });
+    
+    try {
+      await createExpense({
+        amount: amountNum,
+        category: quickCategory.trim(),
+        date: new Date().toISOString(),
+        notes: quickDescription.trim() || undefined
+      });
+      
+      await loadData();
+      setQuickOpen(false);
+      setQuickAmount('');
+      setQuickCategory('');
+      setQuickDescription('');
+      toast({ title: 'Expense added', description: 'Saved to your transactions.' });
+    } catch (error) {
+      console.error('Failed to save expense:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save expense. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -286,7 +302,7 @@ export default function DashboardPage() {
           className="mb-8"
         >
           <h1 className="font-heading text-4xl font-bold mb-2">
-            Welcome back{member?.profile?.nickname ? `, ${member.profile.nickname}` : ''}!
+            Welcome back{user?.name ? `, ${user.name}` : ''}!
           </h1>
           <p className="font-paragraph text-secondary-foreground/70">
             Here's your financial overview for today
@@ -404,14 +420,12 @@ export default function DashboardPage() {
           className="mb-8"
         >
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-6 h-6 text-primary" />
-                <span className="font-heading">AI Financial Insights</span>
-              </CardTitle>
-              {/* Generate button removed */}
-              {/* Removed error text for cleaner UX */}
-            </CardHeader>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-6 h-6 text-primary" />
+              <span className="font-heading">AI Financial Insights</span>
+            </CardTitle>
+          </CardHeader>
             <CardContent className="space-y-4">
               {aiInsights.map((insight, index) => (
                 <div key={index} className="flex items-start gap-3 bg-secondary/50 rounded-xl p-4">
@@ -571,23 +585,29 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {goals.length > 0 ? (
                     goals.slice(0, 3).map((goal) => {
-                      const progress = ((goal.currentProgress || 0) / (goal.targetAmount || 1)) * 100;
+                      const currentAmount = goal.currentAmount || goal.progress || 0;
+                      const progress = ((currentAmount) / (goal.targetAmount || 1)) * 100;
+                      const timelineDate = goal.timeline ? (() => {
+                        const date = new Date();
+                        date.setMonth(date.getMonth() + goal.timeline);
+                        return date;
+                      })() : null;
                       return (
-                        <div key={goal._id} className="p-4 bg-background/30 rounded-xl">
+                        <div key={goal.id} className="p-4 bg-background/30 rounded-xl">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-heading text-sm font-semibold">{goal.goalName}</h4>
+                            <h4 className="font-heading text-sm font-semibold">{goal.name}</h4>
                             <span className="font-paragraph text-xs text-secondary-foreground/60">
-                              {progress.toFixed(0)}%
+                              {Math.min(100, progress).toFixed(0)}%
                             </span>
                           </div>
-                          <Progress value={progress} className="mb-2" />
+                          <Progress value={Math.min(100, progress)} className="mb-2" />
                           <div className="flex items-center justify-between">
                             <p className="font-paragraph text-xs text-secondary-foreground/60">
-                              ${goal.currentProgress?.toLocaleString()} / ${goal.targetAmount?.toLocaleString()}
+                              ${currentAmount.toLocaleString()} / ${goal.targetAmount.toLocaleString()}
                             </p>
-                            {goal.deadline && (
+                            {timelineDate && (
                               <p className="font-paragraph text-xs text-secondary-foreground/60">
-                                Due: {new Date(goal.deadline).toLocaleDateString()}
+                                Due: {timelineDate.toLocaleDateString()}
                               </p>
                             )}
                           </div>

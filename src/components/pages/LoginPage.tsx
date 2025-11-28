@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,35 +13,63 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
 
     // Basic validation
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setLocalError('Please fill in all fields');
       return;
     }
 
-    if (!email.includes('@')) {
+    if (!email.includes('@') || !email.includes('.')) {
       setLocalError('Please enter a valid email address');
       return;
     }
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       // Navigate to dashboard on success
-      navigate('/dashboard');
-    } catch (error) {
-      // Error is handled by auth context
+      navigate('/dashboard', { replace: true });
+    } catch (error: any) {
+      // Error is handled by auth context, but also log for debugging
       console.error('Login error:', error);
+      
+      // Show specific error messages
+      if (error.code === 'ERR_NETWORK') {
+        setLocalError('Cannot connect to server. Please check your connection and ensure the backend is running.');
+      } else if (error.response?.status === 401) {
+        setLocalError('Invalid email or password');
+      } else if (error.response?.status === 404) {
+        setLocalError('Server endpoint not found. Please check backend configuration.');
+      }
     }
   };
 
   const displayError = localError || error;
+  
+  // Clear errors when component unmounts or when user starts typing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setLocalError(null);
+      }, 5000); // Clear error after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-[#1a2744] to-background px-4 py-12">
