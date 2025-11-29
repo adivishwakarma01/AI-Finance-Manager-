@@ -20,7 +20,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      const from = (location.state as any)?.from?.pathname || '/reports';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, location]);
@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       await login(email.trim(), password);
       // Navigate to dashboard on success
-      navigate('/dashboard', { replace: true });
+      navigate('/reports', { replace: true });
     } catch (error: any) {
       // Error is handled by auth context, but also log for debugging
       console.error('Login error:', error);

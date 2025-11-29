@@ -128,7 +128,7 @@ export default function TransactionsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-6 lg:px-12 py-8 pt-24">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Transactions</h1>
@@ -247,8 +247,8 @@ export default function TransactionsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-green-400" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Total Income</p>
@@ -261,8 +261,8 @@ export default function TransactionsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-red-400" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <TrendingDown className="w-6 h-6 sm:w-7 sm:h-7 text-red-400" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Total Expenses</p>
@@ -275,8 +275,8 @@ export default function TransactionsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Net Balance</p>
@@ -294,7 +294,7 @@ export default function TransactionsPage() {
               <div>
                 <Label className="font-paragraph text-sm mb-2 block">Search</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-foreground/40" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-secondary-foreground/40" />
                   <Input
                     placeholder="Search transactions..."
                     value={searchTerm}
@@ -354,11 +354,11 @@ export default function TransactionsPage() {
                     className="flex items-center justify-between p-4 bg-background/30 rounded-xl hover:bg-background/50 transition-colors"
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-12 h-12 rounded-lg ${transaction.type === 'income' ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg ${transaction.type === 'income' ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center flex-shrink-0`}>
                         {transaction.type === 'income' ? (
-                          <TrendingUp className="w-6 h-6 text-green-400" />
+                          <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-green-400" />
                         ) : (
-                          <TrendingDown className="w-6 h-6 text-red-400" />
+                          <TrendingDown className="w-6 h-6 sm:w-7 sm:h-7 text-red-400" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">

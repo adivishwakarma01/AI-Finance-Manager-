@@ -10,6 +10,8 @@ import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { listIncome, listExpense, listGoals, createExpense } from '@/api/client';
 import type { Income, Expense, Goal } from '@/api/client';
+import { BaseCrudService } from '@/integrations';
+import type { Transactions as CmsTransaction, FinancialGoals as CmsGoal } from '@/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,7 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickAmount, setQuickAmount] = useState('');
@@ -39,6 +42,23 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const origin = (import.meta.env.VITE_API_URL || 'https://dddda.onrender.com').replace(/\/+$/, '');
+    const prefixRaw = import.meta.env.VITE_API_PREFIX ?? 'api';
+    const prefix = String(prefixRaw).replace(/^\/+|\/+$/g, '');
+    const apiBase = origin.endsWith('/' + prefix) ? origin : `${origin}${prefix ? '/' + prefix : ''}`;
+    const url = `${apiBase}/auth/profile`;
+    fetch(url, { method: 'GET', credentials: 'include' })
+      .then(async (r) => {
+        if (r.status === 200 || r.status === 401) {
+          setBackendConnected(true);
+        } else {
+          setBackendConnected(false);
+        }
+      })
+      .catch(() => setBackendConnected(false));
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -54,11 +74,131 @@ export default function DashboardPage() {
       setGoals(goalsResponse.data.goals || []);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data. Please try again.',
-        variant: 'destructive'
-      });
+      try {
+        const [txData, goalsData] = await Promise.all([
+          BaseCrudService.getAll<CmsTransaction>('transactions'),
+          BaseCrudService.getAll<CmsGoal>('financialgoals')
+        ]);
+
+        const incomeFallback: Income[] = txData.items
+          .filter(t => String(t.type || '').toLowerCase() === 'income')
+          .map(t => ({
+            id: t._id,
+            amount: Number(t.amount || 0),
+            category: t.category || 'Other',
+            date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(),
+            notes: t.notes || t.description,
+            source: undefined,
+            userId: 'local',
+            createdAt: (t._createdDate || new Date()).toISOString(),
+            updatedAt: (t._updatedDate || new Date()).toISOString(),
+          }));
+
+        const expenseFallback: Expense[] = txData.items
+          .filter(t => String(t.type || '').toLowerCase() === 'expense')
+          .map(t => ({
+            id: t._id,
+            amount: Number(t.amount || 0),
+            category: t.category || 'Other',
+            date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(),
+            notes: t.notes || t.description,
+            paymentMethod: undefined,
+            userId: 'local',
+            createdAt: (t._createdDate || new Date()).toISOString(),
+            updatedAt: (t._updatedDate || new Date()).toISOString(),
+          }));
+
+        const goalFallback: Goal[] = goalsData.items.map(g => ({
+          id: g._id,
+          name: g.goalName || 'Unnamed Goal',
+          targetAmount: Number(g.targetAmount || 0),
+          currentAmount: Number(g.currentProgress || 0),
+          progress: Number(g.currentProgress || 0),
+          timeline: 0,
+          description: g.goalDescription,
+          priority: g.priorityLevel,
+          userId: 'local',
+          createdAt: (g._createdDate || new Date()).toISOString(),
+          updatedAt: (g._updatedDate || new Date()).toISOString(),
+        }));
+
+        if (incomeFallback.length === 0 && expenseFallback.length === 0 && goalFallback.length === 0) {
+          const nowIso = new Date().toISOString();
+          const seedTx = [
+            { _id: crypto.randomUUID(), amount: 5000, type: 'income', date: nowIso, category: 'Salary', description: 'Monthly salary' },
+            { _id: crypto.randomUUID(), amount: 1200, type: 'expense', date: nowIso, category: 'Rent', description: 'Monthly rent' },
+            { _id: crypto.randomUUID(), amount: 300, type: 'expense', date: nowIso, category: 'Groceries', description: 'Weekly groceries' },
+            { _id: crypto.randomUUID(), amount: 150, type: 'expense', date: nowIso, category: 'Transport', description: 'Fuel/Commute' },
+          ];
+          for (const t of seedTx) {
+            await BaseCrudService.create('transactions', t as any);
+          }
+          const seedGoals = [
+            { _id: crypto.randomUUID(), goalName: 'Emergency Fund', targetAmount: 10000, currentProgress: 2500, goalDescription: '3-6 months of expenses', priorityLevel: 'high', deadline: nowIso },
+          ];
+          for (const g of seedGoals) {
+            await BaseCrudService.create('financialgoals', g as any);
+          }
+          const [tx2, goals2] = await Promise.all([
+            BaseCrudService.getAll<CmsTransaction>('transactions'),
+            BaseCrudService.getAll<CmsGoal>('financialgoals')
+          ]);
+          const income2: Income[] = tx2.items
+            .filter(t => String(t.type || '').toLowerCase() === 'income')
+            .map(t => ({
+              id: t._id,
+              amount: Number(t.amount || 0),
+              category: t.category || 'Other',
+              date: t.date ? new Date(t.date).toISOString() : nowIso,
+              notes: t.notes || t.description,
+              source: undefined,
+              userId: 'local',
+              createdAt: (t._createdDate || new Date()).toISOString(),
+              updatedAt: (t._updatedDate || new Date()).toISOString(),
+            }));
+          const expense2: Expense[] = tx2.items
+            .filter(t => String(t.type || '').toLowerCase() === 'expense')
+            .map(t => ({
+              id: t._id,
+              amount: Number(t.amount || 0),
+              category: t.category || 'Other',
+              date: t.date ? new Date(t.date).toISOString() : nowIso,
+              notes: t.notes || t.description,
+              paymentMethod: undefined,
+              userId: 'local',
+              createdAt: (t._createdDate || new Date()).toISOString(),
+              updatedAt: (t._updatedDate || new Date()).toISOString(),
+            }));
+          const goals2Mapped: Goal[] = goals2.items.map(g => ({
+            id: g._id,
+            name: g.goalName || 'Unnamed Goal',
+            targetAmount: Number(g.targetAmount || 0),
+            currentAmount: Number(g.currentProgress || 0),
+            progress: Number(g.currentProgress || 0),
+            timeline: 0,
+            description: g.goalDescription,
+            priority: g.priorityLevel,
+            userId: 'local',
+            createdAt: (g._createdDate || new Date()).toISOString(),
+            updatedAt: (g._updatedDate || new Date()).toISOString(),
+          }));
+          setIncomes(income2);
+          setExpenses(expense2);
+          setGoals(goals2Mapped);
+        } else {
+          setIncomes(incomeFallback);
+          setExpenses(expenseFallback);
+          setGoals(goalFallback);
+        }
+        toast({ title: 'Offline data', description: 'Showing local data while backend is unreachable.' });
+      } catch (fallbackErr) {
+        console.error('Fallback load failed:', fallbackErr);
+        toast({
+          title: 'Error',
+          description: 'Failed to load dashboard data. Please try again.',
+          variant: 'destructive'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -163,7 +303,7 @@ export default function DashboardPage() {
   
       const apiBase = import.meta.env.VITE_API_URL as string | undefined;
       const derivedAdvisor = apiBase ? apiBase.replace(/\/api$/, '') : undefined;
-      const ADVISOR_URL = import.meta.env.VITE_ADVISOR_URL || derivedAdvisor || 'http://localhost:8787';
+      const ADVISOR_URL = import.meta.env.VITE_ADVISOR_URL || derivedAdvisor || 'https://dddda.onrender.com';
       const response = await fetch(`${ADVISOR_URL}/api/insights`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,6 +447,14 @@ export default function DashboardPage() {
           <p className="font-paragraph text-secondary-foreground/70">
             Here's your financial overview for today
           </p>
+          {backendConnected !== null && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs bg-secondary">
+              <span className={`w-2 h-2 rounded-full ${backendConnected ? 'bg-green-400' : 'bg-red-400'}`}></span>
+              <span className="font-paragraph text-secondary-foreground/80">
+                {backendConnected ? 'Backend connected' : 'Backend unreachable'}
+              </span>
+            </div>
+          )}
         </motion.div>
 
         {isMobile && (
@@ -663,7 +811,7 @@ export default function DashboardPage() {
         {isMobile && (
           <div className="fixed bottom-4 left-0 right-0 flex items-center justify-center">
             <div className="bg-secondary/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
-              <Button variant="ghost" className="text-secondary-foreground/80" onClick={() => window.location.href = '/dashboard'}>
+              <Button variant="ghost" className="text-secondary-foreground/80" onClick={() => window.location.href = '/reports'}>
                 <TrendingUp className="w-5 h-5" />
               </Button>
               <Dialog open={quickOpen} onOpenChange={setQuickOpen}>

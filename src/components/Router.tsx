@@ -10,7 +10,6 @@ import ErrorPage from '@/integrations/errorHandlers/ErrorPage';
 import HomePage from '@/components/pages/HomePage';
 import LoginPage from '@/components/pages/LoginPage';
 import SignupPage from '@/components/pages/SignupPage';
-import DashboardPage from '@/components/pages/DashboardPage';
 import TransactionsPage from '@/components/pages/TransactionsPage';
 import GoalsPage from '@/components/pages/GoalsPage';
 import InvestmentsPage from '@/components/pages/InvestmentsPage';
@@ -48,11 +47,7 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: (
-          <AuthProtectedRoute>
-            <DashboardPage />
-          </AuthProtectedRoute>
-        ),
+        element: <Navigate to="/reports" replace />,
       },
       {
         path: "transactions",

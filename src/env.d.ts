@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly BASE_NAME?: string;
   readonly VITE_API_URL?: string;
   readonly VITE_ADVISOR_URL?: string;
+  readonly VITE_API_PREFIX?: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
   readonly MODE: string;

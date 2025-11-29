@@ -19,6 +19,12 @@ export default defineConfig({
   server: {
     host: true,
     port: 4321,
+    proxy: {
+      '/api': {
+        target: (process.env.VITE_API_URL || 'https://dddda.onrender.com').replace(/\/api\/?$/, ''),
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });
-

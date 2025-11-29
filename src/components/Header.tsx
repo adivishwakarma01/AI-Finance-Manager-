@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { TrendingUp, Menu, X } from 'lucide-react';
+import { TrendingUp, Menu, X, DollarSign, Target, Brain, PieChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
@@ -16,11 +16,10 @@ export default function Header() {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/reports', label: 'Dashboard' },
     { path: '/transactions', label: 'Transactions' },
     { path: '/goals', label: 'Goals' },
     { path: '/investments', label: 'Investments' },
-    { path: '/reports', label: 'Reports' },
     { path: '/faq', label: 'FAQ' }
   ];
 
@@ -30,7 +29,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-primary-foreground" />
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <span className="font-heading text-xl font-bold">FinanceAI</span>
           </Link>
@@ -83,12 +82,12 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2"
+            className="lg:hidden p-3"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             ) : (
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             )}
           </button>
         </div>
@@ -145,6 +144,34 @@ export default function Header() {
           </div>
         )}
       </div>
+      {!mobileMenuOpen && (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-secondary z-50">
+          <div className="max-w-[100rem] mx-auto px-6 py-2">
+            <div className="flex items-center justify-between">
+              <Link to="/reports" className={`flex flex-col items-center gap-1 ${location.pathname === '/reports' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
+                <PieChart className="w-6 h-6" />
+                <span className="text-[10px]">Dashboard</span>
+              </Link>
+              <Link to="/transactions" className={`flex flex-col items-center gap-1 ${location.pathname === '/transactions' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
+                <DollarSign className="w-6 h-6" />
+                <span className="text-[10px]">Transactions</span>
+              </Link>
+              <Link to="/goals" className={`flex flex-col items-center gap-1 ${location.pathname === '/goals' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
+                <Target className="w-6 h-6" />
+                <span className="text-[10px]">Goals</span>
+              </Link>
+              <Link to="/investments" className={`flex flex-col items-center gap-1 ${location.pathname === '/investments' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
+                <TrendingUp className="w-6 h-6" />
+                <span className="text-[10px]">Invest</span>
+              </Link>
+              <Link to="/faq" className={`flex flex-col items-center gap-1 ${location.pathname === '/faq' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
+                <Brain className="w-6 h-6" />
+                <span className="text-[10px]">Advisor</span>
+              </Link>
+            </div>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

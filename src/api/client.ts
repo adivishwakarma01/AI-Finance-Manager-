@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// API Base URL - defaults to localhost:5000 if not set in environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const origin = (import.meta.env.VITE_API_URL || 'https://dddda.onrender.com').replace(/\/+$/, '');
+const prefixRaw = import.meta.env.VITE_API_PREFIX ?? 'api';
+const prefix = String(prefixRaw).replace(/^\/+|\/+$/g, '');
+const API_BASE_URL = origin.endsWith('/' + prefix) ? origin : `${origin}${prefix ? '/' + prefix : ''}`;
 
-// Log API base URL in development
 if (import.meta.env.DEV) {
   console.log('🔗 API Base URL:', API_BASE_URL);
 }
@@ -484,4 +485,3 @@ export const isAuthenticated = (): boolean => {
 // Export the api instance for advanced usage if needed
 export { api, TOKEN_KEY };
 export default api;
-

@@ -87,7 +87,7 @@ export default function InvestmentsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-6 lg:px-12 py-8 pt-24">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
         <div className="mb-8">
           <h1 className="font-heading text-4xl font-bold mb-2">Investment Suggestions</h1>
           <p className="font-paragraph text-secondary-foreground/70">
@@ -104,8 +104,8 @@ export default function InvestmentsPage() {
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-heading text-lg font-semibold mb-2">Investment Guidance</h3>
@@ -125,7 +125,7 @@ export default function InvestmentsPage() {
               <div>
                 <Label className="font-paragraph text-sm mb-2 block">Search</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-foreground/40" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-secondary-foreground/40" />
                   <Input
                     placeholder="Search investments..."
                     value={searchTerm}

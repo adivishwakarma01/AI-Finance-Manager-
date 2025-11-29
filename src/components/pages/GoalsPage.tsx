@@ -126,7 +126,7 @@ export default function GoalsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-6 lg:px-12 py-8 pt-24">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Financial Goals</h1>
@@ -236,8 +236,8 @@ export default function GoalsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Target className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <Target className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Active Goals</p>
@@ -248,8 +248,8 @@ export default function GoalsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-green-400" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Achieved Goals</p>
@@ -260,8 +260,8 @@ export default function GoalsPage() {
           <Card className="bg-secondary border-none">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
               </div>
               <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Total Progress</p>
@@ -346,7 +346,7 @@ export default function GoalsPage() {
                             }}
                             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                           >
-                            <TrendingUp className="w-4 h-4 mr-2" />
+                            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                             Update Progress
                           </Button>
                           <Button

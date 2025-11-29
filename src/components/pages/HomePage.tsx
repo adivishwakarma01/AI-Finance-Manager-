@@ -13,7 +13,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-primary-foreground" />
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
               </div>
               <span className="font-heading text-xl font-bold">FinanceAI</span>
             </div>
@@ -430,7 +430,7 @@ export default function HomePage() {
             <div>
               <h4 className="font-heading font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><Link to="/dashboard" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Dashboard</Link></li>
+                <li><Link to="/reports" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Dashboard</Link></li>
                 <li><Link to="/transactions" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Transactions</Link></li>
                 <li><Link to="/goals" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Goals</Link></li>
                 <li><Link to="/investments" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Investments</Link></li>
@@ -440,7 +440,7 @@ export default function HomePage() {
             <div>
               <h4 className="font-heading font-semibold mb-4">Resources</h4>
               <ul className="space-y-2">
-                <li><Link to="/reports" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Reports</Link></li>
+                <li><Link to="/reports" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">Dashboard</Link></li>
                 <li><Link to="/faq" className="font-paragraph text-sm text-secondary-foreground/70 hover:text-primary">FAQ</Link></li>
               </ul>
             </div>
