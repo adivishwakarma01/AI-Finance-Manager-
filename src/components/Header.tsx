@@ -145,28 +145,51 @@ export default function Header() {
         )}
       </div>
       {!mobileMenuOpen && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-secondary z-50">
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-secondary z-50"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           <div className="max-w-[100rem] mx-auto px-6 py-2">
             <div className="flex items-center justify-between">
-              <Link to="/reports" className={`flex flex-col items-center gap-1 ${location.pathname === '/reports' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
-                <PieChart className="w-6 h-6" />
-                <span className="text-[10px]">Dashboard</span>
+              <Link
+                to="/reports"
+                aria-label="Dashboard"
+                className={`p-2 rounded-md flex flex-col items-center gap-1 ${location.pathname === '/reports' ? 'text-primary bg-primary/10' : 'text-secondary-foreground/70'}`}
+              >
+                <PieChart className="w-7 h-7" />
+                <span className={`text-[11px] ${location.pathname === '/reports' ? 'font-semibold' : ''}`}>Dashboard</span>
               </Link>
-              <Link to="/transactions" className={`flex flex-col items-center gap-1 ${location.pathname === '/transactions' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
-                <DollarSign className="w-6 h-6" />
-                <span className="text-[10px]">Transactions</span>
+              <Link
+                to="/transactions"
+                aria-label="Transactions"
+                className={`p-2 rounded-md flex flex-col items-center gap-1 ${location.pathname === '/transactions' ? 'text-primary bg-primary/10' : 'text-secondary-foreground/70'}`}
+              >
+                <DollarSign className="w-7 h-7" />
+                <span className={`text-[11px] ${location.pathname === '/transactions' ? 'font-semibold' : ''}`}>Transactions</span>
               </Link>
-              <Link to="/goals" className={`flex flex-col items-center gap-1 ${location.pathname === '/goals' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
-                <Target className="w-6 h-6" />
-                <span className="text-[10px]">Goals</span>
+              <Link
+                to="/goals"
+                aria-label="Goals"
+                className={`p-2 rounded-md flex flex-col items-center gap-1 ${location.pathname === '/goals' ? 'text-primary bg-primary/10' : 'text-secondary-foreground/70'}`}
+              >
+                <Target className="w-7 h-7" />
+                <span className={`text-[11px] ${location.pathname === '/goals' ? 'font-semibold' : ''}`}>Goals</span>
               </Link>
-              <Link to="/investments" className={`flex flex-col items-center gap-1 ${location.pathname === '/investments' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-[10px]">Invest</span>
+              <Link
+                to="/investments"
+                aria-label="Investments"
+                className={`p-2 rounded-md flex flex-col items-center gap-1 ${location.pathname === '/investments' ? 'text-primary bg-primary/10' : 'text-secondary-foreground/70'}`}
+              >
+                <TrendingUp className="w-7 h-7" />
+                <span className={`text-[11px] ${location.pathname === '/investments' ? 'font-semibold' : ''}`}>Invest</span>
               </Link>
-              <Link to="/faq" className={`flex flex-col items-center gap-1 ${location.pathname === '/faq' ? 'text-primary' : 'text-secondary-foreground/70'}`}>
-                <Brain className="w-6 h-6" />
-                <span className="text-[10px]">Advisor</span>
+              <Link
+                to="/faq"
+                aria-label="Advisor"
+                className={`p-2 rounded-md flex flex-col items-center gap-1 ${location.pathname === '/faq' ? 'text-primary bg-primary/10' : 'text-secondary-foreground/70'}`}
+              >
+                <Brain className="w-7 h-7" />
+                <span className={`text-[11px] ${location.pathname === '/faq' ? 'font-semibold' : ''}`}>Advisor</span>
               </Link>
             </div>
           </div>

@@ -128,8 +128,8 @@ export default function TransactionsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
-        <div className="flex items-center justify-between mb-8">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
+        <div className="flex items-center justify-between mb-8 mt-6">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Transactions</h1>
             <p className="font-paragraph text-secondary-foreground/70">
@@ -144,7 +144,7 @@ export default function TransactionsPage() {
                 Add Transaction
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-secondary border-none max-w-md">
+            <DialogContent className="bg-secondary border-none max-w-md z-[60]">
               <DialogHeader>
                 <DialogTitle className="font-heading text-2xl">Add New Transaction</DialogTitle>
               </DialogHeader>

@@ -154,7 +154,7 @@ export default function FAQPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
         <div className="mb-8">
           <h1 className="font-heading text-4xl font-bold mb-2">AI Financial Advisor</h1>
           <p className="font-paragraph text-secondary-foreground/70">

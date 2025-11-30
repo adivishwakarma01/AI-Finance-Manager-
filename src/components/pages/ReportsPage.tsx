@@ -309,8 +309,8 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8 mt-6">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Financial Reports</h1>
             <p className="font-paragraph text-secondary-foreground/70">
@@ -323,7 +323,7 @@ export default function ReportsPage() {
               <SelectTrigger className="bg-secondary border-none w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-secondary border-none">
+              <SelectContent className="bg-secondary border-none z-50">
                 <SelectItem value="all">All Time</SelectItem>
                 <SelectItem value="30days">Last 30 Days</SelectItem>
                 <SelectItem value="90days">Last 90 Days</SelectItem>

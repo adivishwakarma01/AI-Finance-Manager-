@@ -87,8 +87,8 @@ export default function InvestmentsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24">
-        <div className="mb-8">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
+        <div className="mb-8 mt-6">
           <h1 className="font-heading text-4xl font-bold mb-2">Investment Suggestions</h1>
           <p className="font-paragraph text-secondary-foreground/70">
             Beginner-friendly investment opportunities tailored to your goals
