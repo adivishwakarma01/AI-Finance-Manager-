@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
-import { listIncome, listExpense, listGoals, createExpense } from '@/api/client';
+import { listIncome, listExpense, listGoals, createExpense, createIncome } from '@/api/client';
 import type { Income, Expense, Goal } from '@/api/client';
 import { BaseCrudService } from '@/integrations';
 import type { Transactions as CmsTransaction, FinancialGoals as CmsGoal } from '@/entities';
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -30,6 +31,11 @@ export default function DashboardPage() {
   const [quickCategory, setQuickCategory] = useState('');
   const [quickDescription, setQuickDescription] = useState('');
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [transactionType, setTransactionType] = useState<'all' | 'income' | 'expense'>('all');
+  const [quickIncomeOpen, setQuickIncomeOpen] = useState(false);
+  const [quickIncomeAmount, setQuickIncomeAmount] = useState('');
+  const [quickIncomeCategory, setQuickIncomeCategory] = useState('');
+  const [quickIncomeDescription, setQuickIncomeDescription] = useState('');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 640);
@@ -245,9 +251,10 @@ export default function DashboardPage() {
   // Recent transactions
   const recentTransactions = useMemo(() => (
     [...allTransactions]
+      .filter(t => transactionType === 'all' ? true : t.type === transactionType)
       .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
       .slice(0, 5)
-  ), [allTransactions]);
+  ), [allTransactions, transactionType]);
 
   // Expense by category
   const expensesByCategory = useMemo(() => (
@@ -402,6 +409,37 @@ export default function DashboardPage() {
     }
   };
 
+  const quickSaveIncome = async () => {
+    const amountNum = parseFloat(quickIncomeAmount);
+    if (!amountNum || amountNum <= 0 || !quickIncomeCategory.trim()) {
+      toast({ title: 'Invalid entry', description: 'Enter amount and category.' });
+      return;
+    }
+
+    try {
+      await createIncome({
+        amount: amountNum,
+        category: quickIncomeCategory.trim(),
+        date: new Date().toISOString(),
+        notes: quickIncomeDescription.trim() || undefined
+      });
+
+      await loadData();
+      setQuickIncomeOpen(false);
+      setQuickIncomeAmount('');
+      setQuickIncomeCategory('');
+      setQuickIncomeDescription('');
+      toast({ title: 'Income added', description: 'Saved to your transactions.' });
+    } catch (error) {
+      console.error('Failed to save income:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save income. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.changedTouches[0]?.clientX || 0);
   };
@@ -434,7 +472,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 sm:pt-32 pb-24" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24 sm:pt-28 lg:pt-32 pb-24" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -473,6 +511,26 @@ export default function DashboardPage() {
             </Card>
           </motion.div>
         )}
+
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 flex-wrap mb-6">
+          <div className="flex items-center gap-3">
+            <h2 className="font-heading text-xl">Overview</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-paragraph text-sm text-secondary-foreground/70">Type</span>
+            <Select value={transactionType} onValueChange={(v) => setTransactionType(v as 'all' | 'income' | 'expense')}>
+              <SelectTrigger className="bg-secondary border-none w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-secondary border-none z-50">
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="income">Income</SelectItem>
+                <SelectItem value="expense">Expense</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Key Metrics */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -617,9 +675,9 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+        </motion.div>
 
-          {/* Expense Categories */}
+        {/* Expense Categories */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -659,8 +717,74 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+        </motion.div>
         </div>
+
+        {/* Where Did Income Go */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.75 }}
+          className="mb-8"
+        >
+          <Card className="bg-secondary border-none">
+            <CardHeader>
+              <CardTitle className="font-heading">Where Did Income Go</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <p className="font-paragraph text-sm text-secondary-foreground/60 mb-1">Income used</p>
+                <Progress value={Math.min(100, totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0)} />
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="font-paragraph text-xs text-secondary-foreground/60">Spent</span>
+                  <span className="font-heading text-sm font-semibold">{totalIncome > 0 ? Math.min(100, (totalExpenses / totalIncome) * 100).toFixed(0) : '0'}%</span>
+                </div>
+              </div>
+              {totalIncome <= 0 && (
+                <div className="mt-3">
+                  <Dialog open={quickIncomeOpen} onOpenChange={setQuickIncomeOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Add Income</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="font-heading">Quick Add Income</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="qi-amount">Amount</Label>
+                          <Input id="qi-amount" type="number" value={quickIncomeAmount} onChange={(e) => setQuickIncomeAmount(e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="qi-category">Category</Label>
+                          <Input id="qi-category" value={quickIncomeCategory} onChange={(e) => setQuickIncomeCategory(e.target.value)} placeholder="Salary, Bonus, etc." />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="qi-desc">Description</Label>
+                          <Input id="qi-desc" value={quickIncomeDescription} onChange={(e) => setQuickIncomeDescription(e.target.value)} placeholder="Optional" />
+                        </div>
+                        <div className="flex justify-end">
+                          <Button onClick={quickSaveIncome} className="bg-primary text-primary-foreground hover:bg-primary/90">Save</Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+              <div className="space-y-2">
+                {Object.entries(expensesByCategory)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([name, amount]) => (
+                    <div key={name} className="flex items-center justify-between p-3 bg-background/30 rounded-xl">
+                      <span className="font-paragraph text-sm">{name}</span>
+                      <span className="font-heading text-sm font-semibold">{totalIncome > 0 ? ((amount / totalIncome) * 100).toFixed(0) : 0}%</span>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Recent Transactions */}
@@ -814,6 +938,35 @@ export default function DashboardPage() {
               <Button variant="ghost" className="text-secondary-foreground/80" onClick={() => window.location.href = '/reports'}>
                 <TrendingUp className="w-5 h-5" />
               </Button>
+              <Dialog open={quickIncomeOpen} onOpenChange={setQuickIncomeOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <DollarSign className="w-5 h-5 mr-2" /> Add Income
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="font-heading">Quick Add Income</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="qi-amount">Amount</Label>
+                      <Input id="qi-amount" type="number" value={quickIncomeAmount} onChange={(e) => setQuickIncomeAmount(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="qi-category">Category</Label>
+                      <Input id="qi-category" value={quickIncomeCategory} onChange={(e) => setQuickIncomeCategory(e.target.value)} placeholder="Salary, Bonus, etc." />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="qi-desc">Description</Label>
+                      <Input id="qi-desc" value={quickIncomeDescription} onChange={(e) => setQuickIncomeDescription(e.target.value)} placeholder="Optional" />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={quickSaveIncome} className="bg-primary text-primary-foreground hover:bg-primary/90">Save</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary text-primary-foreground hover:bg-primary/90">

@@ -22,7 +22,7 @@ export default function TransactionsPage() {
 
   // Form state
   const [formData, setFormData] = useState({
-    amount: '',
+    amount: '0.00',
     type: 'expense',
     date: new Date().toISOString().split('T')[0],
     category: '',
@@ -88,7 +88,7 @@ export default function TransactionsPage() {
     await loadTransactions();
     setIsAddDialogOpen(false);
     setFormData({
-      amount: '',
+      amount: '0.00',
       type: 'expense',
       date: new Date().toISOString().split('T')[0],
       category: '',
@@ -128,8 +128,8 @@ export default function TransactionsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
-        <div className="flex items-center justify-between mb-8 mt-6">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24 sm:pt-28 lg:pt-32 pb-24">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 flex-wrap mb-8 sm:mb-10 mt-4 sm:mt-6">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Transactions</h1>
             <p className="font-paragraph text-secondary-foreground/70">
@@ -138,12 +138,20 @@ export default function TransactionsPage() {
           </div>
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-5 h-5 mr-2" />
-                Add Transaction
-              </Button>
-            </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setFormData({ ...formData, type: 'income' })}>
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Add Income
+                </Button>
+              </DialogTrigger>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setFormData({ ...formData, type: 'expense' })}>
+                  <TrendingDown className="w-5 h-5 mr-2" />
+                  Add Expense
+                </Button>
+              </DialogTrigger>
+            </div>
             <DialogContent className="bg-secondary border-none max-w-md z-[60]">
               <DialogHeader>
                 <DialogTitle className="font-heading text-2xl">Add New Transaction</DialogTitle>
@@ -155,6 +163,7 @@ export default function TransactionsPage() {
                     id="amount"
                     type="number"
                     step="0.01"
+                    min="0"
                     required
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -169,11 +178,12 @@ export default function TransactionsPage() {
                     <SelectTrigger className="bg-background border-none">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-secondary border-none">
+                    <SelectContent className="bg-secondary border-none z-50">
                       <SelectItem value="income">Income</SelectItem>
                       <SelectItem value="expense">Expense</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="mt-1 font-paragraph text-xs text-secondary-foreground/60">Selected: {formData.type === 'income' ? 'Income' : 'Expense'}</p>
                 </div>
 
                 <div>
@@ -320,19 +330,19 @@ export default function TransactionsPage() {
 
               <div>
                 <Label className="font-paragraph text-sm mb-2 block">Category</Label>
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="bg-background border-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-secondary border-none">
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category || ''}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger className="bg-background border-none">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-secondary border-none z-50">
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category || ''}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
               </div>
             </div>
           </CardContent>

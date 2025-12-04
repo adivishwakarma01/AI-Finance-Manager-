@@ -309,8 +309,8 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8 mt-6">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24 sm:pt-28 lg:pt-32 pb-24">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 flex-wrap mb-8 sm:mb-10 mt-8">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Financial Reports</h1>
             <p className="font-paragraph text-secondary-foreground/70">
@@ -320,7 +320,7 @@ export default function ReportsPage() {
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="bg-secondary border-none w-full sm:w-40">
+              <SelectTrigger className="bg-secondary border-none w-full sm:w-48 min-w-[12rem]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-none z-50">
@@ -333,7 +333,7 @@ export default function ReportsPage() {
 
             <Button
               onClick={handleExportReport}
-              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 mt-2 sm:mt-0"
             >
               <Download className="w-5 h-5 mr-2" />
               Export Report

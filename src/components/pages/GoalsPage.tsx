@@ -126,8 +126,8 @@ export default function GoalsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-28 pb-24">
-        <div className="flex items-center justify-between mb-8 mt-6">
+      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pt-24 sm:pt-28 lg:pt-32 pb-24">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 flex-wrap mb-8 sm:mb-10 mt-4 sm:mt-6">
           <div>
             <h1 className="font-heading text-4xl font-bold mb-2">Financial Goals</h1>
             <p className="font-paragraph text-secondary-foreground/70">
