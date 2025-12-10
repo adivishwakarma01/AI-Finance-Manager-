@@ -19,8 +19,8 @@ export default {
                 '9xl': ['8rem', { lineHeight: '1', letterSpacing: '0.05em', fontWeight: '900' }],
             },
             fontFamily: {
-                heading: "syne",
-                paragraph: "barlow-extralight"
+                heading: ["Syne", "system-ui", "sans-serif"],
+                paragraph: ["Barlow", "system-ui", "sans-serif"]
             },
             colors: {
                 contentblockbackground: '#CBD5E1',

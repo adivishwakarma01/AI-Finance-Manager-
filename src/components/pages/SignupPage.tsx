@@ -21,7 +21,7 @@ export default function SignupPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate('/reports', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -53,7 +53,7 @@ export default function SignupPage() {
     try {
       await signup(email.trim(), password, name.trim());
       // Navigate to dashboard on success
-      navigate('/reports', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       // Error is handled by auth context, but also show specific messages
       console.error('Signup error:', error);

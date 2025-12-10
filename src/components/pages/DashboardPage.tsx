@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GOOGLE_API_KEY } from '@/config/env';
+import { askGemini } from '@/lib/gemini';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -287,6 +289,9 @@ export default function DashboardPage() {
 
   // AI Insights
   const [aiInsights, setAiInsights] = useState([] as Array<{ type: 'warning' | 'success' | 'tip'; message: string; icon: typeof AlertCircle | typeof TrendingUp | typeof Brain; color: string }>);
+  const [advisorQuestion, setAdvisorQuestion] = useState('');
+  const [advisorAnswer, setAdvisorAnswer] = useState<string | null>(null);
+  const [advisorLoading, setAdvisorLoading] = useState(false);
   const generateAiInsights = useCallback(async () => {
     try {
   
@@ -359,6 +364,55 @@ export default function DashboardPage() {
     } finally {
     }
   }, [totalIncome, totalExpenses, balance, savingsRate, expensesByCategory, recentTransactions]);
+
+  const askAdvisor = useCallback(async () => {
+    if (!advisorQuestion.trim()) return;
+    try {
+      setAdvisorLoading(true);
+      setAdvisorAnswer(null);
+      const summary = {
+        totalIncome,
+        totalExpenses,
+        balance,
+        savingsRate: Number(savingsRate.toFixed(2)),
+        topCategories: Object.entries(expensesByCategory)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name, amount]) => ({ name, amount })),
+        recentTransactions: recentTransactions.map(t => ({
+          date: t.date,
+          type: t.type,
+          category: t.category || 'Other',
+          amount: t.amount || 0,
+          description: t.description || ''
+        }))
+      };
+      if (GOOGLE_API_KEY) {
+        const response = await askGemini(GOOGLE_API_KEY, advisorQuestion, summary);
+        setAdvisorAnswer(response);
+      } else {
+        const apiBase = import.meta.env.VITE_API_URL as string | undefined;
+        const derivedAdvisor = apiBase ? apiBase.replace(/\/api$/, '') : undefined;
+        const ADVISOR_URL = import.meta.env.VITE_ADVISOR_URL || derivedAdvisor || 'https://dddda.onrender.com';
+        const r = await fetch(`${ADVISOR_URL}/api/insights`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ summary, question: advisorQuestion })
+        });
+        if (!r.ok) {
+          setAdvisorAnswer('Unable to reach advisor right now. Try again later.');
+          return;
+        }
+        const data = await r.json();
+        const answer = (data?.answer as string | undefined) || (Array.isArray(data?.insights) ? data.insights.map((i: any) => i.message).join('\n') : 'No answer available');
+        setAdvisorAnswer(answer);
+      }
+    } catch (e) {
+      setAdvisorAnswer('Something went wrong. Please retry.');
+    } finally {
+      setAdvisorLoading(false);
+    }
+  }, [advisorQuestion, totalIncome, totalExpenses, balance, savingsRate, expensesByCategory, recentTransactions]);
 
   // After data load, auto-generate AI insights once
   const insightsGeneratedRef = useRef(false);
@@ -639,6 +693,24 @@ export default function DashboardPage() {
                   <p className="font-paragraph text-sm text-secondary-foreground/90">{insight.message}</p>
                 </div>
               ))}
+              <div className="bg-secondary/60 rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <Input
+                    placeholder="Ask the AI Advisor"
+                    value={advisorQuestion}
+                    onChange={(e) => setAdvisorQuestion(e.target.value)}
+                    className="bg-background border-none"
+                  />
+                  <Button onClick={askAdvisor} disabled={advisorLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    {advisorLoading ? 'Asking…' : 'Ask'}
+                  </Button>
+                </div>
+                {advisorAnswer && (
+                  <div className="mt-3">
+                    <p className="font-paragraph text-sm text-secondary-foreground/90 whitespace-pre-wrap">{advisorAnswer}</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
